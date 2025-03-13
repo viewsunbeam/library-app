@@ -1,13 +1,10 @@
-package com.example.library.repository;
-
-import com.example.library.entity.Book;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import com.example.library.entity.Book;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
-import java.util.List;
-
-public interface BookRepository extends JpaRepository<Book, Long> {
-    @Query("SELECT b FROM Book b WHERE b.title LIKE %:keyword% OR b.author LIKE %:keyword% OR b.isbn LIKE %:keyword%")
-    List<Book> searchBooks(@Param("keyword") String keyword);
+public interface BookRepository extends JpaRepository<Book, String>, JpaSpecificationExecutor<Book> {
+    
+    // 继承 JpaSpecificationExecutor 以支持动态查询
 }

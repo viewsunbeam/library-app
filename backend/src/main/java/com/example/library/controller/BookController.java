@@ -2,6 +2,7 @@ package com.example.library.controller;
 
 import com.example.library.entity.Book;
 import com.example.library.repository.BookRepository;
+import com.example.library.specification.BookSpecifications;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.predicate;
 
 @RestController
 @RequestMapping("/api/books")
@@ -20,15 +22,32 @@ public class BookController {
 
     // 获取所有书籍或根据关键词搜索
     @GetMapping
-    public List<Book> getBooks(@RequestParam(required = false) String keyword) {
-        if (keyword != null && !keyword.isEmpty()) {
-            return bookRepository.searchBooks(keyword);
-        }
-        return bookRepository.findAll();
+    public List<Book> getBooks(
+        @RequestParam(required = false) String bookType,
+        @RequestParam(required = false) String bookName,
+        @RequestParam(required = false) String publisher,
+        @RequestParam(required = false) Integer year,
+        @RequestParam(required = false) String author,
+        @RequestParam(required = false) BigDecimal minPrice,
+        @RequestParam(required = false) BigDecimal maxPrice,
+        @RequestParam(defaultValue = "bookNo,asc") String sort
+    ) {
+        // 构建动态查询
+        Specification<Book> spec = BookSpecifications.withDynamicQuery(
+            bookType, bookName, publisher, year, author, minPrice, maxPrice
+        );
+
+        // 解析排序参数
+        String[] sortParams = sort.split(",");
+        Sort.Direction direction = sortParams[1].equalsIgnoreCase("desc") ?     
+            Sort.Direction.DESC : Sort.Direction.ASC;
+        Sort sortObj = Sort.by(direction, sortParams[0]);
+
+        return bookRepository.findAll(spec, sortObj);
     }
 
     // 根据ID获取书籍
-    @GetMapping("/{id}")
+    @GetMapping("/{bookNo}")
     public ResponseEntity<Book> getBookById(@PathVariable Long id) {
         Optional<Book> book = bookRepository.findById(id);
         return book.map(ResponseEntity::ok)
@@ -51,7 +70,7 @@ public class BookController {
     }
 
     // 更新书籍
-    @PutMapping("/{id}")
+    @PutMapping("/{bookNo}")
     public ResponseEntity<Map<String, Object>> updateBook(@PathVariable Long id, @RequestBody Book book) {
         Map<String, Object> response = new HashMap<>();
         return bookRepository.findById(id)
@@ -72,7 +91,7 @@ public class BookController {
     }
 
     // 删除书籍
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{bookNo}")
     public ResponseEntity<Map<String, Object>> deleteBook(@PathVariable Long id) {
         Map<String, Object> response = new HashMap<>();
         return bookRepository.findById(id)

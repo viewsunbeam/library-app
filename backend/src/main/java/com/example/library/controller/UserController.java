@@ -1,7 +1,7 @@
 package com.example.library.controller;
-
 import com.example.library.entity.User;
 import com.example.library.repository.UserRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +25,7 @@ public class UserController {
     }
 
     // 根据ID获取用户
-    @GetMapping("/{cardId}")
+    @GetMapping("/{userId}")
     public ResponseEntity<User> getUserById(@PathVariable String cardId) {
         Optional<User> user = userRepository.findById(cardId);
         return user.map(ResponseEntity::ok)
@@ -48,7 +48,7 @@ public class UserController {
     }
 
     // 删除用户
-    @DeleteMapping("/{cardId}")
+    @DeleteMapping("/{userId}")
     public ResponseEntity<Map<String, Object>> deleteUser(@PathVariable String cardId) {
         Map<String, Object> response = new HashMap<>();
         return userRepository.findById(cardId)
